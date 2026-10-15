@@ -212,7 +212,80 @@ def menu_sim():
         st.caption('HC3 digunakan untuk interval; dengan confounding, asumsi eksogenitas tidak terpenuhi.')
         st.download_button('⬇️ Hasil replikasi',r.to_csv(index=False).encode(),file_name='montecarlo.csv')
 
-PAGES={'🏠 Beranda':menu_dashboard,'📚 E-Book':menu_ebook,'🗂️ Data Studio':menu_data,'📈 OLS':menu_ols,'🏙️ Panel FE':menu_panel,'🔬 IV / 2SLS':menu_iv,'⚖️ DiD':menu_did,'🩺 Diagnostik':menu_diag,'🤖 Machine Learning':menu_ml,'🎛️ Monte Carlo':menu_sim}
+
+def menu_colab():
+    st.title('📓 Praktikum Python & Google Colab')
+    st.markdown('''Pelajari teori pada **E-Book**, praktikkan kode Python melalui **Google Colab**,
+    kemudian bandingkan hasilnya dengan menu analisis RegresiLab. Notebook dapat dijalankan
+    tanpa instalasi Python di komputer mahasiswa.''')
+    st.info('Petunjuk mahasiswa: klik **Buka di Google Colab** → **File > Save a copy in Drive** → **Runtime > Run all**. Simpan salinan agar perubahan kode dan jawaban latihan tidak hilang.')
+    lessons = [
+        dict(title='Praktikum 1 — Regresi dan Sains Data Dasar',
+             path='materi_sebelumnya/03_Praktikum_Dasar.ipynb',
+             theory='02_OLS.md',
+             summary='Eksplorasi data, estimasi OLS, inferensi, asumsi dan diagnostik regresi, serta regularisasi dan evaluasi prediksi.',
+             tasks=[
+                 'Bangkitkan data sintetis dengan ukuran sampel berbeda, lalu bandingkan estimasi koefisien dan standard error.',
+                 'Ubah kekuatan hubungan antar prediktor dan periksa VIF serta kestabilan estimasi.',
+                 'Simulasikan heteroskedastisitas dan bandingkan standard error klasik dengan HC3.',
+                 'Bagi data menjadi train/test; bandingkan RMSE model OLS dan Ridge.'
+             ],dataset='pendidikan.csv'),
+        dict(title='Praktikum 2 — Ekonometrika dan Regresi Lanjutan',
+             path='materi_sebelumnya/04_Praktikum_Lanjutan.ipynb',
+             theory='03_Panel.md',
+             summary='Model panel FE/RE, variabel instrumental dan 2SLS, Difference-in-Differences, diagnostik, dan ML/DML.',
+             tasks=[
+                 'Estimasi model panel pooled OLS dan fixed effects, lalu interpretasikan perbedaannya.',
+                 'Bandingkan estimasi OLS dengan IV/2SLS serta evaluasi relevansi instrumen.',
+                 'Estimasi efek kebijakan menggunakan DiD dan diskusikan asumsi parallel trends.',
+                 'Bangun validasi out-of-sample untuk model prediksi dan jelaskan risiko data leakage.'
+             ],dataset='panel.csv')
+    ]
+    for i, lesson in enumerate(lessons, 1):
+        with st.container(border=True):
+            st.subheader(lesson['title'])
+            st.write(lesson['summary'])
+            nb_path = ROOT / lesson['path']
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.link_button('🚀 Buka di Google Colab', 'https://colab.research.google.com/github/mindra-bit/RegresiLab-Unpad/blob/main/' + lesson['path'], use_container_width=True)
+            with col_b:
+                if nb_path.is_file():
+                    st.download_button('⬇️ Unduh notebook .ipynb', data=nb_path.read_bytes(),
+                                       file_name=nb_path.name, mime='application/x-ipynb+json',
+                                       key='notebook_' + str(i), use_container_width=True)
+                else:
+                    st.error('Berkas notebook tidak ditemukan pada server.')
+            with st.expander('🎯 Petunjuk tugas dan latihan'):
+                for j, task in enumerate(lesson['tasks'], 1):
+                    st.markdown(f'**{j}.** {task}')
+                st.markdown('**Luaran:** notebook yang sudah dijalankan, interpretasi parameter, tabel hasil, grafik diagnostik, dan kesimpulan metodologis.')
+            data_path = ROOT / 'data' / lesson['dataset']
+            if data_path.is_file():
+                st.download_button('📊 Unduh dataset pendamping: ' + lesson['dataset'],
+                                   data=data_path.read_bytes(), file_name=lesson['dataset'],
+                                   mime='text/csv', key='dataset_' + str(i))
+    st.divider()
+    st.subheader('🗃️ Bank data latihan')
+    st.caption('Seluruh dataset berikut adalah sintetis dan hanya untuk demonstrasi metode.')
+    for label, file_name in DATASETS.items():
+        file_path = ROOT / 'data' / file_name
+        if file_path.is_file():
+            a, b = st.columns([3, 1])
+            a.write('**' + label + '** — ' + file_name)
+            b.download_button('Unduh CSV', file_path.read_bytes(), file_name=file_name,
+                              mime='text/csv', key='bank_' + file_name, use_container_width=True)
+    st.divider()
+    st.subheader('🧭 Panduan singkat Google Colab')
+    st.markdown('''1. Klik salah satu tombol **Buka di Google Colab**.
+2. Login akun Google jika diminta, lalu pilih **File → Save a copy in Drive**.
+3. Jalankan sel secara berurutan menggunakan **Runtime → Run all**.
+4. Jika notebook meminta paket tambahan, izinkan instalasi melalui sel `%pip install`.
+5. Unggah CSV melalui panel **Files** di Colab jika contoh kode memerlukan file lokal.
+6. Simpan hasil, interpretasikan temuan, dan kumpulkan notebook sesuai instruksi dosen.''')
+    st.warning('Google Colab memakai runtime terpisah dari server Streamlit. Dataset yang diunggah ke notebook tidak otomatis tersimpan di RegresiLab; jangan unggah data rahasia ke repository publik.')
+
+PAGES={'🏠 Beranda':menu_dashboard,'📚 E-Book':menu_ebook,'📓 Praktikum Python & Colab':menu_colab,'🗂️ Data Studio':menu_data,'📈 OLS':menu_ols,'🏙️ Panel FE':menu_panel,'🔬 IV / 2SLS':menu_iv,'⚖️ DiD':menu_did,'🩺 Diagnostik':menu_diag,'🤖 Machine Learning':menu_ml,'🎛️ Monte Carlo':menu_sim}
 with st.sidebar:
     if (ROOT/'assets/logo_unpad.png').exists():st.image(str(ROOT/'assets/logo_unpad.png'),width=82)
     st.markdown('### REGRESILAB')
